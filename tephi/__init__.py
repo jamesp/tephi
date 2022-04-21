@@ -14,6 +14,7 @@ barb data.
 from collections import namedtuple
 from collections.abc import Iterable
 from functools import partial
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 from matplotlib.font_manager import FontProperties
 import matplotlib.pyplot as plt
 from mpl_toolkits.axisartist.grid_helper_curvelinear import (
@@ -498,16 +499,18 @@ class _PlotCollection:
     def __init__(
         self,
         axes,
-        spec,
-        stop,
-        plot_func,
-        text_kwargs,
+        spec: Iterable[Tuple[int, float]],
+        # JP: stop and minimum must be an int as used in range() below.
+        #     Not sure this is sensible, should probably be floats?
+        stop: Union[Sequence[float], int],
+        plot_func: Callable,
+        text_kwargs: Dict[str, Any],
         fixed=None,
-        minimum=None,
+        minimum: Optional[int] = None,
         xfocus=None,
     ):
-        if isinstance(stop, Iterable):
-            if minimum and minimum > max(stop):
+        if isinstance(stop, Sequence):
+            if (minimum is not None) and (minimum > max(stop)):
                 emsg = "Minimum value of {!r} exceeds all other values"
                 raise ValueError(emsg.format(minimum))
 
@@ -516,14 +519,19 @@ class _PlotCollection:
                 for step, zoom in sorted(spec, reverse=True)
             ]
         else:
-            if minimum and minimum > stop:
-                emsg = "Minimum value of {!r} exceeds maximum threshold {!r}"
-                raise ValueError(emsg.format(minimum, stop))
-
-            items = [
-                [step, zoom, set(range(step, stop + step, step))]
-                for step, zoom in sorted(spec, reverse=True)
-            ]
+            if minimum is not None:
+                if (minimum > stop):
+                    emsg = "Minimum value of {!r} exceeds maximum threshold {!r}"
+                    raise ValueError(emsg.format(minimum, stop))
+                items = [
+                    [step, zoom, set(range(minimum, stop + step, step))]
+                    for step, zoom in sorted(spec, reverse=True)
+                ]
+            else:
+                items = [
+                    [step, zoom, set(range(step, stop + step, step))]
+                    for step, zoom in sorted(spec, reverse=True)
+                ]
 
         for index, item in enumerate(items):
             if minimum:
