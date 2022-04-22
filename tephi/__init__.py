@@ -909,7 +909,7 @@ class Tephigram:
 
     def _calculate_extents(self, xfactor=None, yfactor=None):
         min_x = min_y = 1e10
-        max_x = max_y = -1e-10
+        max_x = max_y = -1e10
         profiles = self._profiles
         transform = self.tephi_transform.transform
 
