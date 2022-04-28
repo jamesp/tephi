@@ -203,6 +203,16 @@ def wet_adiabat(
     pressures = [max_pressure]
     dp = -5.0
 
+    # TODO: this loop has a divide by zero problem when pressure goes
+    # to zero. This is likely because:
+    # - 1000mb is a reasonable value for max_pressure
+    # - dp is set to a constant -5mb
+    # - the loop iterates 200 times and 1000 + (-5*200) = 0
+    # One option is to scale dp by max_pressure to approach 0 asymptotically
+    # for example:
+    #     for i in range(200):
+    #         dp = -10.0 * pressures[i] / max_pressure
+    #         ...
     for i in range(200):
         dp, dt = _wet_adiabat_gradient(
             min_temperature, pressures[i], temps[i], dp
